@@ -145,6 +145,107 @@ Matrix numMul(Matrix m, int num)
 	return result;
 }
 
+bool isSymmetric(Matrix m)
+{
+	if (m.col == m.row)
+	{
+		for (int i = 0; i < m.col-1; i++)
+			for (int j = i + 1; j < m.col; j++)
+			{
+				if (m.matrix[i][j]!= m.matrix[j][i])
+					return false;
+			}
+		return true;
+	}
+	else
+		return false;
+}
+
+//Cholsky Decompose
+Matrix Cholesky(Matrix ma)
+{
+	int k = ma.col;
+	float sumi = 0;
+	float sumj = 0;
+	Matrix ml = InitMatrix(ma.row, ma.col);
+	for (int j = 0; j < k; j++)
+	{
+		if (j - 1 >= 0)
+		{
+			for (int n = 0; n < j; n++)
+			{
+				sumj += ml.matrix[j][n] * ml.matrix[j][n];
+			}
+		}
+		ml.matrix[j][j] = sqrt(ma.matrix[j][j] - sumj); //对角线上的元素
+		sumj = 0;
+		for (int i = j + 1; i < k; i++)
+		{
+			if (j - 1 >= 0)
+			{
+				for (int n = 0; n < j; n++)
+				{
+					sumi += ml.matrix[j][n] * ml.matrix[i][n];
+				}
+			}
+			ml.matrix[i][j] = (ma.matrix[i][j] - sumi) / (ml.matrix[j][j]); //其余同列元素
+			sumi = 0;
+		}
+	}
+	//printMatrix(ml);
+	return ml;
+}
+
+//使用cholesky的求逆
+Matrix CholeskyInverse(Matrix ma)
+{
+	////////////Cholesky////////////
+	Matrix ml = Cholesky(ma);
+	int k = ml.col;
+	////////////inverse///////////////
+	Matrix mY = InitMatrix(ma.row, ma.col);//存放Y结果的空矩阵
+	Matrix mI = EyeMatrix(k);//创建一个单位阵
+	/*L*Y=I*/
+	float sumi = 0;
+	for (int j = 0; j < k; j++)
+	{
+		for (int i = 0; i < k; i++)
+		{
+			if (i > 0)
+			{
+				for (int n = 0; n < i; n++)
+					sumi += ml.matrix[i][n] * mY.matrix[n][j];
+			}
+			mY.matrix[i][j] = (mI.matrix[i][j] - sumi) / ml.matrix[i][i];
+			sumi = 0;
+		}
+	}
+	/*LT*X=Y*/
+	Matrix mlt = InitMatrix(ma.row, ma.col);
+	mlt = TransposeMatrix(ml, ml.row, ml.col);//求L的转置
+	Matrix mX = InitMatrix(ma.row, ma.col);//存放X结果的空矩阵
+	for (int j = k - 1; j >= 0; j--)
+	{
+		for (int i = k - 1; i >= 0; i--)
+		{
+			if (i < k - 1)
+			{
+				for (int n = i + 1; n < k; n++)
+					sumi += mlt.matrix[i][n] * mX.matrix[n][j];
+			}
+			mX.matrix[i][j] = (mY.matrix[i][j] - sumi) / mlt.matrix[i][i];
+			sumi = 0;
+		}
+	}
+	//释放过程中创建的矩阵
+	freeMatrix(ml);
+	freeMatrix(mlt);
+	freeMatrix(mY);
+	freeMatrix(mI);
+	//printMatrix(mX);
+	return mX;
+}
+
 //打印矩阵
 void printMatrix(Matrix m)
 {

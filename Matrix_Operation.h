@@ -26,6 +26,12 @@ Matrix Mul(Matrix m1, Matrix m2);
 
 Matrix numMul(Matrix m, int num);
 
+bool isSymmetric(Matrix m);
+
+Matrix Cholesky(Matrix ma);
+
+Matrix CholeskyInverse(Matrix ma);
+
 void printMatrix(Matrix m);
 
 void freeMatrix(Matrix m);
