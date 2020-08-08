@@ -6,7 +6,7 @@ using namespace std;
 
 
 //¸ù¾İÓÃ»§ĞèÇóĞÂ½¨¾ØÕó
-Matrix CreateMatrix()
+Matrix InputMatrix()
 {
 	Matrix m;
 	int row, col;
@@ -31,7 +31,7 @@ Matrix CreateMatrix()
 }
 
 //³õÊ¼»¯Ò»¸öĞĞÎªrowÁĞÎªcol¾ØÕó
-Matrix InitMatrix(int row, int col)
+Matrix ZerosMatrix(int row, int col)
 {
 	Matrix m;
 	float** matrix;
@@ -54,7 +54,7 @@ Matrix InitMatrix(int row, int col)
 //È¡×ªÖÃ£¬²¢·µ»ØÒ»¸öĞÂmatrix
 Matrix TransposeMatrix(Matrix m, int row, int col)
 {
-	Matrix mt = InitMatrix(col, row); //colºÍrow·´¹ıÀ´
+	Matrix mt = ZerosMatrix(col, row); //colºÍrow·´¹ıÀ´
 	for (int i = 0; i < row; i++)
 	{
 		for (int j = 0; j < col; j++)
@@ -68,7 +68,7 @@ Matrix TransposeMatrix(Matrix m, int row, int col)
 //ÀàËÆmatlabµÄeyeº¯Êı
 Matrix EyeMatrix(int k)
 {
-	Matrix m = InitMatrix(k, k);
+	Matrix m = ZerosMatrix(k, k);
 	for (int i = 0; i < k; i++)
 		m.matrix[i][i] = 1;
 	return m;
@@ -78,7 +78,7 @@ Matrix EyeMatrix(int k)
 //ĞÂ½¨¾ØÕó²¢½«Ïà¼ÓÖµÒÔĞÂ½¨¾ØÕó·µ»Ø
 Matrix add(Matrix m1, Matrix m2)
 {
-	Matrix result = InitMatrix(m1.row, m1.col);
+	Matrix result = ZerosMatrix(m1.row, m1.col);
 	for (int i = 0; i < m1.row; i++)
 	{
 		for (int j = 0; j < m1.col; j++)
@@ -92,7 +92,7 @@ Matrix add(Matrix m1, Matrix m2)
 //ĞÂ½¨¾ØÕó²¢½«Ïà¼õÖµÒÔĞÂ½¨¾ØÕó·µ»Ø
 Matrix sub(Matrix m1, Matrix m2)
 {
-	Matrix result = InitMatrix(m1.row, m1.col);
+	Matrix result = ZerosMatrix(m1.row, m1.col);
 	for (int i = 0; i < m1.row; i++)
 	{
 		for (int j = 0; j < m1.col; j++)
@@ -119,7 +119,7 @@ float calRowCol(Matrix M1, Matrix M2, int row, int col) //rowÎªM1µÄĞĞ colÎªm2µÄÁ
 //¾ØÕó²æ³Ë
 Matrix Mul(Matrix m1, Matrix m2)
 {
-	Matrix result = InitMatrix(m1.row, m2.col);
+	Matrix result = ZerosMatrix(m1.row, m2.col);
 	for (int i = 0; i < m1.row; i++)
 	{
 		for (int j = 0; j < m2.col; j++)
@@ -133,7 +133,7 @@ Matrix Mul(Matrix m1, Matrix m2)
 //¾ØÕóÊı³Ë
 Matrix numMul(Matrix m, int num)
 {
-	Matrix result = InitMatrix(m.row, m.col);
+	Matrix result = ZerosMatrix(m.row, m.col);
 	cout << "ÊıÖµ:" << num << endl;
 	for (int i = 0; i < m.row; i++)
 	{
@@ -167,7 +167,7 @@ Matrix Cholesky(Matrix ma)
 	int k = ma.col;
 	float sumi = 0;
 	float sumj = 0;
-	Matrix ml = InitMatrix(ma.row, ma.col);
+	Matrix ml = ZerosMatrix(ma.row, ma.col);
 	for (int j = 0; j < k; j++)
 	{
 		if (j - 1 >= 0)
@@ -203,7 +203,7 @@ Matrix CholeskyInverse(Matrix ma)
 	Matrix ml = Cholesky(ma);
 	int k = ml.col;
 	////////////inverse///////////////
-	Matrix mY = InitMatrix(ma.row, ma.col);//´æ·ÅY½á¹ûµÄ¿Õ¾ØÕó
+	Matrix mY = ZerosMatrix(ma.row, ma.col);//´æ·ÅY½á¹ûµÄ¿Õ¾ØÕó
 	Matrix mI = EyeMatrix(k);//´´½¨Ò»¸öµ¥Î»Õó
 	/*L*Y=I*/
 	float sumi = 0;
@@ -221,9 +221,9 @@ Matrix CholeskyInverse(Matrix ma)
 		}
 	}
 	/*LT*X=Y*/
-	Matrix mlt = InitMatrix(ma.row, ma.col);
+	Matrix mlt = ZerosMatrix(ma.row, ma.col);
 	mlt = TransposeMatrix(ml, ml.row, ml.col);//ÇóLµÄ×ªÖÃ
-	Matrix mX = InitMatrix(ma.row, ma.col);//´æ·ÅX½á¹ûµÄ¿Õ¾ØÕó
+	Matrix mX = ZerosMatrix(ma.row, ma.col);//´æ·ÅX½á¹ûµÄ¿Õ¾ØÕó
 	for (int j = k - 1; j >= 0; j--)
 	{
 		for (int i = k - 1; i >= 0; i--)
@@ -244,6 +244,34 @@ Matrix CholeskyInverse(Matrix ma)
 	freeMatrix(mI);
 	//printMatrix(mX);
 	return mX;
+}
+
+//´«µİ¾ØÕóÖµ¸øÁíÒ»¸ö¾ØÕó
+void passMatrix(Matrix to, Matrix from)
+{
+	for (int i = 0; i < from.row; i++)
+		for (int j = 0; j < from.col; j++)
+			to.matrix[i][j] = from.matrix[i][j];
+}
+
+//´«µİ¾ØÕóÖµ¸øÁíÒ»¸ö¾ØÕó
+void passMatrix(Matrix to, Matrix from,
+	int to_rowbegin, int to_rowend, int to_colbegin, int to_colend,
+	int from_rowbegin, int from_rowend, int from_colbegin, int from_colend)
+{
+	////redirection
+	if (to_rowend == 0)
+		to_rowend = to.row;
+	if (to_colend == 0)
+		to_colend = to.col;
+	if (from_rowend == 0)
+		from_rowend = from.row;
+	if (from_colend == 0)
+		from_colend = from.col;
+
+	for (int i = 0; i < (from_rowend - from_rowbegin + 1); i++)
+		for (int j = 0; j < (from_colend - from_colbegin + 1); j++)
+			to.matrix[to_rowbegin + i - 1][to_colbegin + j - 1] = from.matrix[from_rowbegin + i - 1][from_colbegin + j - 1];
 }
 
 //´òÓ¡¾ØÕó

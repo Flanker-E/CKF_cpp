@@ -1,4 +1,0 @@
-﻿  Matrix_test.cpp
-C:\Users\Flanker\OneDrive - tongji.edu.cn\CKF\Matrix_test\Matrix_test.cpp(119,56): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
-C:\Users\Flanker\OneDrive - tongji.edu.cn\CKF\Matrix_test\Matrix_test.cpp(133,44): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-  Matrix_test.vcxproj -> C:\Users\Flanker\OneDrive - tongji.edu.cn\CKF\Matrix_test\Debug\Matrix_test.exe

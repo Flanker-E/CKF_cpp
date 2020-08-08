@@ -8,9 +8,9 @@ typedef struct
 	float **matrix;
 } Matrix;
 
-Matrix CreateMatrix();
+Matrix InputMatrix();
 
-Matrix InitMatrix(int row, int col);
+Matrix ZerosMatrix(int row, int col);
 
 Matrix TransposeMatrix(Matrix m, int row, int col);
 
@@ -31,6 +31,10 @@ bool isSymmetric(Matrix m);
 Matrix Cholesky(Matrix ma);
 
 Matrix CholeskyInverse(Matrix ma);
+
+void passMatrix(Matrix to, Matrix from,
+	int to_rowbegin = 1, int to_rowend = 0, int to_colbegin = 1, int to_colend = 0,
+	int from_rowbegin = 1, int from_rowend = 0, int from_colbegin = 1, int from_colend = 0);
 
 void printMatrix(Matrix m);
 
