@@ -1,6 +1,7 @@
 #include <iostream>
 #include <malloc.h>
 #include <stdio.h>
+#include <iomanip>
 #include "Matrix_Operation.h"
 using namespace std;
 
@@ -12,10 +13,10 @@ Matrix InputMatrix()
 	int row, col;
 	cout << "ÊäÈëĞĞÊıÓëÁĞÊı£º" << endl;
 	cin >> row >> col;
-	float **enterMatrix;
-	enterMatrix = (float **)malloc(row * sizeof(float *));
+	double **enterMatrix;
+	enterMatrix = (double **)malloc(row * sizeof(double *));
 	for (int i = 0; i < row; i++)
-		enterMatrix[i] = (float *)malloc(col * sizeof(float));
+		enterMatrix[i] = (double *)malloc(col * sizeof(double));
 	cout << "ÊäÈëÄãµÄ¾ØÕó£º" << endl;
 	for (int i = 0; i < row; i++)
 	{
@@ -34,10 +35,10 @@ Matrix InputMatrix()
 Matrix ZerosMatrix(int row, int col)
 {
 	Matrix m;
-	float** matrix;
-	matrix = (float**)malloc(row * sizeof(float*));
+	double** matrix;
+	matrix = (double**)malloc(row * sizeof(double*));
 	for (int i = 0; i < row; i++)
-		matrix[i] = (float*)malloc(col * sizeof(float));
+		matrix[i] = (double*)malloc(col * sizeof(double));
 	for (int i = 0; i < row; i++)
 	{
 		for (int j = 0; j < col; j++)
@@ -52,8 +53,10 @@ Matrix ZerosMatrix(int row, int col)
 }
 
 //È¡×ªÖÃ£¬²¢·µ»ØÒ»¸öĞÂmatrix
-Matrix TransposeMatrix(Matrix m, int row, int col)
+Matrix TransposeMatrix(Matrix m, int free)
 {
+	int row = m.row;
+	int col = m.col;
 	Matrix mt = ZerosMatrix(col, row); //colºÍrow·´¹ıÀ´
 	for (int i = 0; i < row; i++)
 	{
@@ -62,6 +65,8 @@ Matrix TransposeMatrix(Matrix m, int row, int col)
 			mt.matrix[j][i] = m.matrix[i][j];
 		}
 	}
+	if (free)
+		freeMatrix(m);
 	return mt;
 }
 
@@ -74,9 +79,28 @@ Matrix EyeMatrix(int k)
 	return m;
 }
 
+Matrix OnesMatrix(int row, int col, double num)
+{
+	Matrix m;
+	double** matrix;
+	matrix = (double**)malloc(row * sizeof(double*));
+	for (int i = 0; i < row; i++)
+		matrix[i] = (double*)malloc(col * sizeof(double));
+	for (int i = 0; i < row; i++)
+	{
+		for (int j = 0; j < col; j++)
+		{
+			matrix[i][j] = num;
+		}
+	}
+	m.col = col;
+	m.row = row;
+	m.matrix = matrix;
+	return m;
+}
 
-//ĞÂ½¨¾ØÕó²¢½«Ïà¼ÓÖµÒÔĞÂ½¨¾ØÕó·µ»Ø
-Matrix add(Matrix m1, Matrix m2)
+//ĞÂ½¨¾ØÕó²¢½«Ïà¼ÓÖµÒÔĞÂ½¨¾ØÕó·µ»Ø,Èç¹ûfree=1£¨Ä¬ÈÏÎª0£©Ôò°ÑÊäÈë¾ØÕóµÄ¿Õ¼äÊÍ·Å
+Matrix add(Matrix m1, Matrix m2, int free)
 {
 	Matrix result = ZerosMatrix(m1.row, m1.col);
 	for (int i = 0; i < m1.row; i++)
@@ -86,11 +110,18 @@ Matrix add(Matrix m1, Matrix m2)
 			result.matrix[i][j] = m1.matrix[i][j] + m2.matrix[i][j];
 		}
 	}
+	if (free)
+	{
+		if ((free == 10) | (free == 11))
+			freeMatrix(m1);
+		if ((free == 01) | (free == 11))
+			freeMatrix(m2);
+	}
 	return result;
 }
 
-//ĞÂ½¨¾ØÕó²¢½«Ïà¼õÖµÒÔĞÂ½¨¾ØÕó·µ»Ø
-Matrix sub(Matrix m1, Matrix m2)
+//ĞÂ½¨¾ØÕó²¢½«Ïà¼õÖµÒÔĞÂ½¨¾ØÕó·µ»Ø,Èç¹ûfree=1£¨Ä¬ÈÏÎª0£©Ôò°ÑÊäÈë¾ØÕóµÄ¿Õ¼äÊÍ·Å
+Matrix sub(Matrix m1, Matrix m2, int free)
 {
 	Matrix result = ZerosMatrix(m1.row, m1.col);
 	for (int i = 0; i < m1.row; i++)
@@ -100,13 +131,21 @@ Matrix sub(Matrix m1, Matrix m2)
 			result.matrix[i][j] = m1.matrix[i][j] - m2.matrix[i][j];
 		}
 	}
+	if (free)
+	{
+		if ((free == 10) | (free == 11))
+			freeMatrix(m1);
+		if ((free == 01) | (free == 11))
+			freeMatrix(m2);
+	}
 	return result;
 }
 
+
 //ĞĞÁĞÏà³Ë
-float calRowCol(Matrix M1, Matrix M2, int row, int col) //rowÎªM1µÄĞĞ colÎªm2µÄÁĞ
+double calRowCol(Matrix M1, Matrix M2, int row, int col) //rowÎªM1µÄĞĞ colÎªm2µÄÁĞ
 {
-	float result = 0;
+	double result = 0;
 	int same = M1.col;
 	for (int j = 0; j < same; j++)
 	{
@@ -117,7 +156,7 @@ float calRowCol(Matrix M1, Matrix M2, int row, int col) //rowÎªM1µÄĞĞ colÎªm2µÄÁ
 }
 
 //¾ØÕó²æ³Ë
-Matrix Mul(Matrix m1, Matrix m2)
+Matrix Mul(Matrix m1, Matrix m2, int free)
 {
 	Matrix result = ZerosMatrix(m1.row, m2.col);
 	for (int i = 0; i < m1.row; i++)
@@ -127,14 +166,21 @@ Matrix Mul(Matrix m1, Matrix m2)
 			result.matrix[i][j] = calRowCol(m1, m2, i, j);
 		}
 	}
+	if (free)
+	{
+		if ((free == 10) | (free == 11))
+			freeMatrix(m1);
+		if ((free == 01) | (free == 11))
+			freeMatrix(m2);
+	}
 	return result;
 }
 
 //¾ØÕóÊı³Ë
-Matrix numMul(Matrix m, int num)
+Matrix numMul(Matrix m, double num, int free)
 {
 	Matrix result = ZerosMatrix(m.row, m.col);
-	cout << "ÊıÖµ:" << num << endl;
+	//cout << "ÊıÖµ:" << num << endl;
 	for (int i = 0; i < m.row; i++)
 	{
 		for (int j = 0; j < m.col; j++)
@@ -142,17 +188,19 @@ Matrix numMul(Matrix m, int num)
 			result.matrix[i][j] = m.matrix[i][j] * num;
 		}
 	}
+	if (free)
+		freeMatrix(m);
 	return result;
 }
 
-bool isSymmetric(Matrix m)
+int isSymmetric(Matrix m)
 {
 	if (m.col == m.row)
 	{
-		for (int i = 0; i < m.col-1; i++)
+		for (int i = 0; i < m.col - 1; i++)
 			for (int j = i + 1; j < m.col; j++)
 			{
-				if (m.matrix[i][j]!= m.matrix[j][i])
+				if (m.matrix[i][j] != m.matrix[j][i])
 					return false;
 			}
 		return true;
@@ -161,12 +209,39 @@ bool isSymmetric(Matrix m)
 		return false;
 }
 
+//similar to matlab's diag input one row/col matrix and return diag.
+Matrix diagMatrix(Matrix m, int free)
+{
+	int num = (m.row > m.col) ? m.row : m.col;
+	Matrix diag = ZerosMatrix(num, num);
+	for (int i = 0; i < num; i++)
+		if (m.row > m.col)
+			diag.matrix[i][i] = m.matrix[i][0];
+		else
+			diag.matrix[i][i] = m.matrix[0][i];
+	if (free)
+		freeMatrix(m);
+	return diag;
+}
+
+//similar to matlab's remap
+Matrix repmatMatrix(Matrix m, int rownum, int colnum, int free)
+{
+	Matrix result = ZerosMatrix((m.row*rownum), (m.col*colnum));
+	for (int i = 0; i < rownum; i++)
+		for (int j = 0; j < colnum; j++)
+			passMatrix(result, m, i*m.row + 1, (i + 1)*m.row, j*m.col + 1, (j + 1)*m.col);
+	if (free)
+		freeMatrix(m);
+	return result;
+}
+
 //Cholsky Decompose
 Matrix Cholesky(Matrix ma)
 {
 	int k = ma.col;
-	float sumi = 0;
-	float sumj = 0;
+	double sumi = 0;
+	double sumj = 0;
 	Matrix ml = ZerosMatrix(ma.row, ma.col);
 	for (int j = 0; j < k; j++)
 	{
@@ -206,7 +281,7 @@ Matrix CholeskyInverse(Matrix ma)
 	Matrix mY = ZerosMatrix(ma.row, ma.col);//´æ·ÅY½á¹ûµÄ¿Õ¾ØÕó
 	Matrix mI = EyeMatrix(k);//´´½¨Ò»¸öµ¥Î»Õó
 	/*L*Y=I*/
-	float sumi = 0;
+	double sumi = 0;
 	for (int j = 0; j < k; j++)
 	{
 		for (int i = 0; i < k; i++)
@@ -222,7 +297,7 @@ Matrix CholeskyInverse(Matrix ma)
 	}
 	/*LT*X=Y*/
 	Matrix mlt = ZerosMatrix(ma.row, ma.col);
-	mlt = TransposeMatrix(ml, ml.row, ml.col);//ÇóLµÄ×ªÖÃ
+	mlt = TransposeMatrix(ml);//ÇóLµÄ×ªÖÃ
 	Matrix mX = ZerosMatrix(ma.row, ma.col);//´æ·ÅX½á¹ûµÄ¿Õ¾ØÕó
 	for (int j = k - 1; j >= 0; j--)
 	{
@@ -247,14 +322,6 @@ Matrix CholeskyInverse(Matrix ma)
 }
 
 //´«µİ¾ØÕóÖµ¸øÁíÒ»¸ö¾ØÕó
-void passMatrix(Matrix to, Matrix from)
-{
-	for (int i = 0; i < from.row; i++)
-		for (int j = 0; j < from.col; j++)
-			to.matrix[i][j] = from.matrix[i][j];
-}
-
-//´«µİ¾ØÕóÖµ¸øÁíÒ»¸ö¾ØÕó
 void passMatrix(Matrix to, Matrix from,
 	int to_rowbegin, int to_rowend, int to_colbegin, int to_colend,
 	int from_rowbegin, int from_rowend, int from_colbegin, int from_colend)
@@ -274,6 +341,96 @@ void passMatrix(Matrix to, Matrix from,
 			to.matrix[to_rowbegin + i - 1][to_colbegin + j - 1] = from.matrix[from_rowbegin + i - 1][from_colbegin + j - 1];
 }
 
+//obtain mean value
+double meanMatrix(Matrix m, int rowbegin, int rowend, int colbegin, int colend, int free)
+{
+	if (rowend == 0)
+		rowend = m.row;
+	if (colend == 0)
+		colend = m.col;
+
+	double mean = 0;
+	int num = 0;
+	for (int i = 0; i < (rowend - rowbegin + 1); i++)
+		for (int j = 0; j < (colend - colbegin + 1); j++)
+		{
+			mean += m.matrix[rowbegin + i - 1][colbegin + j - 1];
+			num++;
+		}
+	if (free)
+		freeMatrix(m);
+	mean = mean / num;
+	return mean;
+}
+
+void sort(Matrix m, int row, int col)
+{
+	int nums[10] = { 4, 5, 2, 10, 7, 1, 8, 3, 6, 9 };
+	int i, j, isSorted;
+	double temp;
+	if ((row != 0) && (col == 0))//sort row
+	{
+		//ÓÅ»¯Ëã·¨£º×î¶à½øĞĞ n-1 ÂÖ±È½Ï
+		for (i = 0; i < m.col - 1; i++)
+		{
+			isSorted = 1;  //¼ÙÉèÊ£ÏÂµÄÔªËØÒÑ¾­ÅÅĞòºÃÁË
+			for (j = 0; j < m.col - 1 - i; j++) {
+				if (m.matrix[row - 1][j] > m.matrix[row - 1][j + 1]) {
+					temp = m.matrix[row - 1][j];
+					m.matrix[row - 1][j] = m.matrix[row - 1][j + 1];
+					m.matrix[row - 1][j + 1] = temp;
+					isSorted = 0;  //Ò»µ©ĞèÒª½»»»Êı×éÔªËØ£¬¾ÍËµÃ÷Ê£ÏÂµÄÔªËØÃ»ÓĞÅÅĞòºÃ
+				}
+			}
+			if (isSorted) break; //Èç¹ûÃ»ÓĞ·¢Éú½»»»£¬ËµÃ÷Ê£ÏÂµÄÔªËØÒÑ¾­ÅÅĞòºÃÁË
+		}
+	}
+	else//sort col
+	{
+		//ÓÅ»¯Ëã·¨£º×î¶à½øĞĞ n-1 ÂÖ±È½Ï
+		for (i = 0; i < m.row - 1; i++)
+		{
+			isSorted = 1;  //¼ÙÉèÊ£ÏÂµÄÔªËØÒÑ¾­ÅÅĞòºÃÁË
+			for (j = 0; j < m.row - 1 - i; j++) {
+				if (m.matrix[j][col - 1] > m.matrix[j + 1][col - 1]) {
+					temp = m.matrix[j][col - 1];
+					m.matrix[j][col - 1] = m.matrix[j + 1][col - 1];
+					m.matrix[j + 1][col - 1] = temp;
+					isSorted = 0;  //Ò»µ©ĞèÒª½»»»Êı×éÔªËØ£¬¾ÍËµÃ÷Ê£ÏÂµÄÔªËØÃ»ÓĞÅÅĞòºÃ
+				}
+			}
+			if (isSorted) break; //Èç¹ûÃ»ÓĞ·¢Éú½»»»£¬ËµÃ÷Ê£ÏÂµÄÔªËØÒÑ¾­ÅÅĞòºÃÁË
+		}
+	}
+}
+
+//return median value.row/col which input is 0 is null.
+double medianMatrix(Matrix m_median, int row, int col)
+{
+	Matrix m = m_median;
+	double median = 0;
+	if ((row == 0) && (col == 0))
+		return 0;
+	else
+	{
+		sort(m, row, col);
+		if ((row != 0) && (col == 0))//sort row
+			if ((m.col % 2) == 0)
+				median = (m.matrix[row - 1][m.col / 2 - 1] + m.matrix[row - 1][m.col / 2]) / 2.0;
+			else
+				median = m.matrix[row - 1][(int)floor((m.col) / 2.0)];
+		else//sort col
+			if ((m.row % 2) == 0)
+				median = (m.matrix[m.row / 2 - 1][col - 1] + m.matrix[m.row / 2][col - 1]) / 2.0;
+			else
+				median = m.matrix[(int)floor((m.row) / 2.0)][col - 1];
+	}
+	//printMatrix(m);
+	freeMatrix(m);
+	return median;
+}
+
+
 //´òÓ¡¾ØÕó
 void printMatrix(Matrix m)
 {
@@ -281,10 +438,11 @@ void printMatrix(Matrix m)
 	{
 		for (int j = 0; j < m.col; j++)
 		{
-			cout << m.matrix[i][j] << "  ";
+			cout << setprecision(16) << m.matrix[i][j] << "  ";
 		}
-		cout << endl;
+		cout  << endl;
 	}
+	cout << endl;
 }
 
 void freeMatrix(Matrix m)
