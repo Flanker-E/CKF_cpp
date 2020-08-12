@@ -197,6 +197,7 @@ int main()
 	//printMatrix(Epsilon);
 	//////////declaration in main loop////////////
 	Matrix TempA, TempB, TempC, TempOne, TempZero;//temporary matrix
+	Matrix TRange, TDoppler;//SvNum,1
 	Matrix TempPseu, TempTestDtMedian, TestDeltaYRange;
 	Matrix Tempsdl1, TempTestDfMedian, TestDeltaYDoppler;
 	double TestDtMedian, TestDfMedian;
@@ -224,8 +225,8 @@ int main()
 	///////////////////////////main loop//////////////////////////////////
 	for (int i = LoopStart + 1; i < lengthData; i++)
 	{
-		/*if ((i % 100) == 0)
-			cout << i << endl;*/
+		/*if ((i % 100) == 0)*/
+		//cout << i << endl;
 		passMatrix(P_K_Klaststep, P_K_Kfinal);
 		passMatrix(XuKKlaststep, XuKKfinal, 1, 0, 1, 0, 1, 0, i, i);
 		SvNum = NumberGPSSpaceVehiclesInView.matrix[0][LoopStart];
@@ -237,11 +238,10 @@ int main()
 		passMatrix(TempC, TruePosInfo, 1, 0, 1, 0, 1, 0, i, i);
 		InOrbitPredict(TempA, TempB, TempC);
 		passMatrix(XuPredicted, TempA, 1, 0, i + 1, i + 1);
-		freeMatrix(TempB); freeMatrix(TempC);
+		freeMatrix(TempA); freeMatrix(TempB); freeMatrix(TempC);
 		//printMatrix(P_K_Klaststep);
 		//printMatrix(XuKKlaststep);  printMatrix(AccellerationOut); printMatrix(XuPredicted);
 		//cout << SvNum;
-		Matrix TRange, TDoppler;//SvNum,1
 		TRange = ZerosMatrix(SvNum, 1);//SvNum,1
 		TDoppler = ZerosMatrix(SvNum, 1);//SvNum,1
 		//Matrix TDopplerLMS = ZerosMatrix(SvNum, 1);
@@ -265,13 +265,13 @@ int main()
 		//printMatrix(sub(TempPseu, TRange));
 		TestDtMedian = medianMatrix(sub(TempPseu, TRange), 0, 1);
 		TempTestDtMedian = OnesMatrix(SvNum, 1, TestDtMedian);
-		TestDeltaYRange = sub(sub(TempPseu, TRange, 10), TempTestDtMedian, 11);
+		TestDeltaYRange = sub(sub(TempPseu, TRange, 11), TempTestDtMedian, 11);
 		
 		Tempsdl1 = ZerosMatrix(SvNum, 1);
 		passMatrix(Tempsdl1, GPSSpaceVehiclesdL1, 1, 0, 1, 0, 1, SvNum, i + 1, i + 1);
 		TestDfMedian = medianMatrix(sub(Tempsdl1, TDoppler), 0, 1);
 		TempTestDfMedian = OnesMatrix(SvNum, 1, TestDfMedian);
-		TestDeltaYDoppler = sub(sub(Tempsdl1, TDoppler, 10), TempTestDfMedian, 11);
+		TestDeltaYDoppler = sub(sub(Tempsdl1, TDoppler, 11), TempTestDfMedian, 11);
 		//double Df = meanMatrix(DopplerError, 1, SvNum);
 		
 
@@ -294,6 +294,7 @@ int main()
 			else
 				SvToDelete++;
 		}
+		freeMatrix(TestDeltaYRange); freeMatrix(TestDeltaYDoppler);
 		//update available device number
 		SvNum -= SvToDelete;
 		//cout << SvNum << endl;
@@ -312,38 +313,39 @@ int main()
 		passMatrix(D1, TempZero, 1, 0, SvNum + 1);
 		passMatrix(D1, TempZero, SvNum, 0, 1, 0);
 		passMatrix(D1, D, SvNum, 0, SvNum + 1);
+		freeMatrix(D);
 		freeMatrix(TempZero);
 		TempOne = OnesMatrix(1, 2 * SvNum, Vpower);
 		for (int ii = 0; ii < SvNum; ii++)
 			TempOne.matrix[0][ii] = Ppower;
-		R = diagMatrix(TempOne, 1);
-
-		R1 = Mul(Mul(D1, R), TransposeMatrix(D1), 11);
+		R = diagMatrix(TempOne,1);
+		R1 = Mul(Mul(D1, R, 01), TransposeMatrix(D1), 11);
 		TempOne = ZerosMatrix(2*SvNum, 1);
 		passMatrix(TempOne, PseudoRange2, 1, 0, 1, 0, 1, SvNum, i + 1, i + 1);
 		//printMatrix(TempOne); printMatrix(D1); printMatrix(GPSSpaceVehiclesdL12);
 		passMatrix(TempOne, GPSSpaceVehiclesdL12, SvNum + 1, 0, 1, 0, 1, SvNum, i + 1, i + 1);
 		Z = Mul(D1, TempOne, 01);
+		freeMatrix(Z);
 		//freeMatrix(TempOne);
 		//printMatrix(Z);
 
 		////////////////cubaTrue时间更新 Next we goes to time update.
 
 		S_K_Ktime = Cholesky(P_K_Klaststep);
-		CP = add(Mul(S_K_Ktime, Epsilon), repmatMatrix(XuKKlaststep, 1, 12), 11); //6,12
+		CP = add(Mul(S_K_Ktime, Epsilon,10), repmatMatrix(XuKKlaststep, 1, 12), 11); //6,12
 		//将上一时刻CP点递推到下一时刻，传播cubaTrue点
 		//CPRcv = ZerosMatrix(6, 2 * StateNumber);//6, 2 * StateNumber
-		AccellerationOutNoUse;//3,1
 		for (int j = 0; j < 2 * StateNumber; j++)
 		{
 			TempOne = ZerosMatrix(6, 1);
 			AccellerationOutNoUse = ZerosMatrix(3, 1);
 			passMatrix(TempOne, CP, 1, 0, 1, 0, 1, 0, j + 1, j + 1);
 			InOrbitPredict(TempOne, AccellerationOutNoUse, TempOne);
-			passMatrix(CPRcv, TempOne,1,0,j+1,j+1);
+			passMatrix(CPRcv, TempOne, 1, 0, j + 1, j + 1);
 			freeMatrix(TempOne);
 			freeMatrix(AccellerationOutNoUse);
 		}
+		freeMatrix(CP);
 		for (int ii = 0; ii < 6; ii++)
 			XuKKtime.matrix[ii][0] = meanMatrix(CPRcv, ii + 1, ii + 1);
 		//TempA = CPRcv;
@@ -353,7 +355,7 @@ int main()
 		///////////测量更新 meas update///////////
 
 		S_K_Kmeas = Cholesky(P_K_Ktime);//6,6
-		CPmeas = add(Mul(S_K_Kmeas, Epsilon), repmatMatrix(XuKKtime, 1, 12), 11); //6,12	
+		CPmeas = add(Mul(S_K_Kmeas, Epsilon,10), repmatMatrix(XuKKtime, 1, 12), 11); //6,12	
 		//M estimator to constraint outliers.
 		CPYRange = ZerosMatrix(SvNum, m);//SvNum,1
 		CPYDoppler = ZerosMatrix(SvNum, m);//SvNum,1
@@ -373,7 +375,6 @@ int main()
 				//DopplerError.matrix[i][0] = GPSSpaceVehiclesdL1.matrix[i][LoopStart] - Doppler.matrix[i][0];
 			}
 		}
-
 		YRange = ZerosMatrix(SvNum, 1);
 		YDoppler = ZerosMatrix(SvNum, 1);
 		for (int ii = 0; ii < SvNum; ii++)
@@ -383,7 +384,6 @@ int main()
 		//printMatrix(TRange); printMatrix(TDoppler);
 		TempPseu = ZerosMatrix(SvNum, 1);
 		passMatrix(TempPseu, PseudoRange2, 1, 0, 1, 0, 1, SvNum, i + 1, i + 1);
-		//printMatrix(sub(TempPseu, TRange));
 		DtMedian = medianMatrix(sub(TempPseu, YRange), 0, 1);
 		DeltaYRange = sub(sub(TempPseu, YRange, 10), OnesMatrix(SvNum, 1, DtMedian), 11);
 
@@ -417,27 +417,29 @@ int main()
 		//估计相关协方差阵
 		TempOne = ZerosMatrix(2*SvNum, m);
 		passMatrix(TempOne, CPYRange, 1, 0, 1, 0, 1, SvNum);
+		freeMatrix(CPYRange);
 		//printMatrix(TempOne); printMatrix(D1); printMatrix(GPSSpaceVehiclesdL12);
 		passMatrix(TempOne, CPYDoppler, SvNum + 1, 0, 1, 0, 1, SvNum);
+		freeMatrix(CPYDoppler);
 
 		CPYmeas = TempOne;
 		CPZmeas = Mul(D1, TempOne);
 		
 		TempOne = ZerosMatrix(2 * SvNum, 1);
 		passMatrix(TempOne, YRange, 1, 0, 1, 0, 1, SvNum);
-		//printMatrix(TempOne); printMatrix(D1); printMatrix(GPSSpaceVehiclesdL12);
 		passMatrix(TempOne, YDoppler, SvNum + 1, 0, 1, 0, 1, SvNum);
+		freeMatrix(YRange); freeMatrix(YDoppler);
 		CPY = TempOne;
 		Zkmeas = Mul(D1, TempOne);
 
-		Pzz_K_Kmeas = add(R1, numMul(Mul(sub(CPZmeas, repmatMatrix(Zkmeas, 1, m), 01), TransposeMatrix(sub(CPZmeas, repmatMatrix(Zkmeas, 1, m), 01), 1), 11), 1.0 / m, 1), 01);
-		Pxz_K_Kmeas = numMul(Mul(sub(CPmeas, repmatMatrix(XuKKtime, 1, m), 01), TransposeMatrix(sub(CPZmeas, repmatMatrix(Zkmeas, 1, m), 01), 1), 11), 1.0 / m, 1);
+		Pzz_K_Kmeas = add(R1, numMul(Mul(sub(CPZmeas, repmatMatrix(Zkmeas, 1, m), 01), TransposeMatrix(sub(CPZmeas, repmatMatrix(Zkmeas, 1, m), 01), 1), 11), 1.0 / m, 1), 11);
+		Pxz_K_Kmeas = numMul(Mul(sub(CPmeas, repmatMatrix(XuKKtime, 1, m), 11), TransposeMatrix(sub(CPZmeas, repmatMatrix(Zkmeas, 1, m), 11), 1), 11), 1.0 / m, 1);
 		//估计卡尔曼增益
 		Wk = Mul(Pxz_K_Kmeas, CholeskyInverse(Pzz_K_Kmeas), 01);
 		//K 时刻状态估计值
-		passMatrix(XuKKfinal, add(XuKKtime, Mul(Wk, sub(Mul(D1, YRobust), Zkmeas, 10), 01), 01), 1, 0, i + 1, i + 1);
+		passMatrix(XuKKfinal, add(XuKKtime, Mul(Wk, sub(Mul(D1, YRobust,10), Zkmeas, 10), 01), 01), 1, 0, i + 1, i + 1);
 		//K 时刻状态误差协方差估计值
-		passMatrix(P_K_Kfinal, sub(P_K_Ktime, Mul(Wk, Mul(Pzz_K_Kmeas, TransposeMatrix(Wk), 01), 01), 01));
+		passMatrix(P_K_Kfinal, sub(P_K_Ktime, Mul(Wk, Mul(Pzz_K_Kmeas, TransposeMatrix(Wk), 01), 01), 11));
 
 
 		alpha = -0.0;
@@ -481,18 +483,21 @@ int main()
 		//printMatrix(DeltaYDoppler);
 		TempA = ZerosMatrix(SvNum, 1);
 		passMatrix(TempA, YRobust, 1, 0, 1, 0, 1 + SvNum, 2 * SvNum);
+		freeMatrix(YRobust);
 		DeltaYDoppler = sub(TempA, FinalDoppler, 10);
 		DopplerFinal = meanMatrix(DeltaYDoppler, 1, 0, 1, 0);
 		RangePower = sqrt(meanMatrix(Mul(TransposeMatrix(DeltaYRange), DeltaYRange, 10), 1, 0, 1, 0, 1) / SvNum);
 
 		R21 = ZerosMatrix(2 * SvNum, 2 * SvNum);
 		TempA = Mul(DeltaYRange, TransposeMatrix(DeltaYRange), 01);
-		passMatrix(R21, TempA); freeMatrix(TempA);
+		passMatrix(R21, TempA); 
+		freeMatrix(TempA); freeMatrix(DeltaYRange);
 		TempZero = ZerosMatrix(SvNum, SvNum);
 		passMatrix(R21, TempZero, 1, 0, SvNum + 1);
 		passMatrix(R21, TempZero, SvNum + 1, 0, 1, 0);
 		TempA = Mul(DeltaYDoppler, TransposeMatrix(DeltaYDoppler), 01);
-		passMatrix(R21, TempA, SvNum + 1, 0, SvNum + 1); freeMatrix(TempA);
+		passMatrix(R21, TempA, SvNum + 1, 0, SvNum + 1); 
+		freeMatrix(TempA); freeMatrix(DeltaYDoppler);
 
 		diagR21 = ZerosMatrix(2 * SvNum, 1);
 		for (int j = 0; j < 2 * SvNum; j++)
@@ -505,6 +510,7 @@ int main()
 		//printMatrix(repmatMatrix(CPY, 1, m));
 		TempA = sub(CPYmeas, repmatMatrix(CPY, 1, m), 01);
 		R22 = numMul(Mul(sub(CPYmeas, repmatMatrix(CPY, 1, m), 01), TransposeMatrix(sub(CPYmeas, repmatMatrix(CPY, 1, m), 01), 1), 11), 1.0 / m, 1);
+		freeMatrix(CPYmeas);
 		diagR22 = ZerosMatrix(2 * SvNum, 1);
 		for (int j = 0; j < 2 * SvNum; j++)
 			diagR22.matrix[j][0] = R22.matrix[j][j];

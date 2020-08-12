@@ -1,5 +1,5 @@
 ﻿  CKFilter.cpp
 c:\users\flanker\onedrive - tongji.edu.cn\ckf\ckfilter\ckfilter.cpp(46): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
 c:\users\flanker\onedrive - tongji.edu.cn\ckf\ckfilter\ckfilter.cpp(166): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-c:\users\flanker\onedrive - tongji.edu.cn\ckf\ckfilter\ckfilter.cpp(231): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\flanker\onedrive - tongji.edu.cn\ckf\ckfilter\ckfilter.cpp(232): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
   CKFilter.vcxproj -> C:\Users\Flanker\OneDrive - tongji.edu.cn\CKF\CKFilter\x64\Debug\CKFilter.exe
